@@ -1,3 +1,4 @@
+import 'package:app_reward_v1/redeemed_items_screen.dart';
 import 'package:flutter/material.dart';
 
 class RewardDetailScreen extends StatelessWidget {
@@ -5,6 +6,8 @@ class RewardDetailScreen extends StatelessWidget {
   final int points;
   final int stock;
   final String imageUrl;
+  final int currentUserPoints;
+  final Function(RedeemedItem) onRedeem;
 
   const RewardDetailScreen({
     super.key,
@@ -12,6 +15,8 @@ class RewardDetailScreen extends StatelessWidget {
     required this.points,
     required this.stock,
     required this.imageUrl,
+    required this.currentUserPoints,
+    required this.onRedeem,
   });
 
   @override
@@ -59,6 +64,23 @@ class RewardDetailScreen extends StatelessWidget {
                 'รายละเอียดของรางวัล: รายการนี้เป็นตัวอย่างสำหรับการพรีวิว คุณสามารถปรับแต่งคำอธิบายให้สอดคล้องกับข้อมูลจริง เช่น วัสดุ ขนาด เงื่อนไขการแลก และวันที่หมดอายุ.',
               ),
               const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'ใช้ $points Points เพื่อแลกรางวัลนี้',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
               
             ],
           ),
@@ -70,18 +92,80 @@ class RewardDetailScreen extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {
-                // TODO: นำไปสู่ flow การแลกแต้มจริงในอนาคต
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ยังไม่เปิดใช้งานการแลกแต้ม')),
-                );
-              },
+              onPressed: () => _showRedeemDialog(context),
               icon: const Icon(Icons.card_giftcard),
-              label: const Text('Redeem'),
+              label: Text('Redeem ($points Points)'),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void _showRedeemDialog(BuildContext context) {
+    final userPoints = currentUserPoints;
+    if (userPoints < points) {
+      showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Insufficient Points'),
+          content: Text('You need $points Points but have only $userPoints.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Confirm Redeem'),
+          content: Text('Use $points Points to redeem "$name"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onRedeem(RedeemedItem(
+                  name: name,
+                  points: points,
+                  redeemedDate: '16-11-2025',
+                  imageUrl: imageUrl,
+                ));
+                _showSuccessDialog(context);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Success!'),
+          content: Text('You have successfully redeemed "$name" for $points Points.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

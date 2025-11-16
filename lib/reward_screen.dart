@@ -1,5 +1,6 @@
 import 'package:app_reward_v1/reward_item_card.dart';
 import 'package:app_reward_v1/reward_detail_screen.dart';
+import 'package:app_reward_v1/redeemed_items_screen.dart';
 import 'package:flutter/material.dart';
  
 class RewardScreen extends StatefulWidget {
@@ -24,6 +25,8 @@ class _RewardItem {
 }
 
 class _RewardScreenState extends State<RewardScreen> {
+  int _userPoints = 9869;
+  final List<RedeemedItem> _redeemedItems = [];
   final List<_RewardItem> _items = [
     const _RewardItem(name: 'Alpha Mug', points: 850, stock: 12, imageUrl: 'https://via.placeholder.com/150'),
     const _RewardItem(name: 'Beta T-Shirt', points: 1200, stock: 8, imageUrl: 'https://via.placeholder.com/150'),
@@ -112,19 +115,15 @@ class _RewardScreenState extends State<RewardScreen> {
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Reward', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('9,869 Points', style: TextStyle(fontSize: 14)),
-            Text('Expires on: 31-12-68', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          children: [
+            const Text('Reward', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('$_userPoints Points', style: const TextStyle(fontSize: 14)),
+            const Text('Expires on: 31-12-68', style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
             onPressed: () {},
           ),
         ],
@@ -148,9 +147,23 @@ class _RewardScreenState extends State<RewardScreen> {
               children: [
                 Row(
                   children: [
-                    FilterChip(label: const Text('Reward Items'), onSelected: (bool value) {}),
+                    FilterChip(
+                      label: const Text('Reward Items'),
+                      selected: true,
+                      onSelected: (bool value) {},
+                    ),
                     const SizedBox(width: 10),
-                    FilterChip(label: const Text('Redeemed Items'), onSelected: (bool value) {}),
+                    FilterChip(
+                      label: const Text('Redeemed Items'),
+                      onSelected: (bool value) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => RedeemedItemsScreen(items: _redeemedItems),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
                 IconButton(
@@ -179,6 +192,13 @@ class _RewardScreenState extends State<RewardScreen> {
                             points: item.points,
                             stock: item.stock,
                             imageUrl: item.imageUrl,
+                            currentUserPoints: _userPoints,
+                            onRedeem: (redeemedItem) {
+                              setState(() {
+                                _userPoints -= redeemedItem.points;
+                                _redeemedItems.add(redeemedItem);
+                              });
+                            },
                           ),
                         ),
                       );
