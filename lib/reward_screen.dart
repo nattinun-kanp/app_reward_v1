@@ -26,6 +26,7 @@ class _RewardItem {
 
 class _RewardScreenState extends State<RewardScreen> {
   int _userPoints = 9869;
+  String _searchQuery = '';
   final List<RedeemedItem> _redeemedItems = [];
   final List<_RewardItem> _items = [
     const _RewardItem(name: 'Alpha Mug', points: 850, stock: 12, imageUrl: 'https://via.placeholder.com/150'),
@@ -140,6 +141,11 @@ class _RewardScreenState extends State<RewardScreen> {
                   borderRadius: BorderRadius.circular(20.0),
                 ),
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
             ),
             const SizedBox(height: 10),
             Row(
@@ -179,9 +185,14 @@ class _RewardScreenState extends State<RewardScreen> {
                   crossAxisCount: 2,
                   childAspectRatio: 0.75,
                 ),
-                itemCount: _items.length,
+                itemCount: _items
+                    .where((it) => it.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+                    .length,
                 itemBuilder: (context, index) {
-                  final item = _items[index];
+                  final filtered = _items
+                      .where((it) => it.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+                      .toList();
+                  final item = filtered[index];
                   return InkWell(
                     onTap: () {
                       Navigator.push(
